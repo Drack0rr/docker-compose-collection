@@ -2,25 +2,21 @@ name: master
 on:
   push:
     branches: [ master ]
+    tags: ['v*']
   workflow_dispatch:
 jobs:
   check-yaml:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v2
-      - name: Set up Python
-        uses: actions/setup-python@v2
-        with:
-          python-version: 3.8
-      - name: Install yamllint
-        run: pip install yamllint
-      - name: Lint YAML files
-        run: yamllint --format github -d .github/workflows/conf_yaml ./composes-files/*
+    if: github.event_name == 'workflow_dispatch' || startsWith(github.ref, 'refs/tags/v')
+    uses: ./.github/workflows/check-yaml.yml
   generate-files:
     needs: check-yaml
+    if: >-
+      !cancelled() && github.ref == 'refs/heads/master' &&
+      ((github.event_name == 'push' && needs.check-yaml.result == 'skipped') ||
+      (github.event_name == 'workflow_dispatch' && needs.check-yaml.result == 'success'))
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
       - name: Generate json file
         run: python3 .github/workflows/generate-template-json.py
       - name: update file and push to remote

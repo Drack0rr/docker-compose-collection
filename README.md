@@ -413,3 +413,7 @@ networks:
     external:
       name: $NETWORK
 ```
+
+## GitHub Actions
+
+Les PR ne déclenchent pas de CI. Sur `master`, le workflow génère les modèles Portainer sans lancer le lint YAML. Les tags `v*` exécutent la validation YAML complète sans modifier les modèles. Le lancement manuel valide aussi les fichiers et ne régénère les modèles que depuis `master`.
